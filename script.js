@@ -252,7 +252,6 @@ document.addEventListener('keydown', function (e) {
   switch (e.key) {
     case 'ArrowRight':
     case 'ArrowDown':
-    case ' ':
       e.preventDefault();
       goNext();
       break;
