@@ -53,9 +53,14 @@ function goToPage(n) {
     if (v.preload === 'none') { v.preload = 'auto'; v.load(); }
   });
 
-  // Preload next page's videos in the background
+  // Preload next two pages' videos in the background
   if (n + 1 < pages.length) {
     pages[n + 1].querySelectorAll('video').forEach(function (v) {
+      if (v.preload === 'none') { v.preload = 'auto'; v.load(); }
+    });
+  }
+  if (n + 2 < pages.length) {
+    pages[n + 2].querySelectorAll('video').forEach(function (v) {
       if (v.preload === 'none') { v.preload = 'auto'; v.load(); }
     });
   }
