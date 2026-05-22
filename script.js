@@ -183,16 +183,14 @@ function toggleTheme(cb) {
   }
 })();
 
-// ---- Flashlight: lazy-initialized on first mousemove (works for touchscreen laptops too) ----
+// ---- Flashlight: canvas for any device with a fine pointer (mouse/trackpad) ----
 document.documentElement.classList.add('on-homepage');
-(function () {
+if (window.matchMedia('(any-pointer: fine)').matches) {
   var canvas = document.getElementById('flashlight-canvas');
   var ctx = canvas.getContext('2d');
   var canvasW = 0, canvasH = 0;
-  var fx = 0, fy = 0;
-  var rafQueued = false;
-  var ready = false;
-
+  var fx = window.innerWidth * 0.5;
+  var fy = window.innerHeight * 0.44;
   // Allocate gradient once — centered at origin, repositioned via ctx.translate each frame
   var spotGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 210);
   spotGrad.addColorStop(0,   'rgba(0,0,0,1)');
@@ -232,23 +230,26 @@ document.documentElement.classList.add('on-homepage');
     ctx.globalCompositeOperation = 'source-over';
     prevFx = fx;
     prevFy = fy;
-    rafQueued = false;
   }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
 
   document.addEventListener('mousemove', function (e) {
     fx = e.clientX;
     fy = e.clientY;
-    if (!ready) {
-      ready = true;
-      resizeCanvas();
-      window.addEventListener('resize', resizeCanvas);
-    }
-    if (!rafQueued) {
-      rafQueued = true;
-      requestAnimationFrame(renderFlashlight);
+    renderFlashlight();
+  });
+
+  // Close the spotlight hole when cursor leaves the window
+  document.addEventListener('mouseleave', function () {
+    if (prevFx !== undefined) {
+      ctx.fillStyle = 'rgb(5, 6, 12)';
+      ctx.fillRect(prevFx - 215, prevFy - 215, 430, 430);
+      prevFx = undefined;
     }
   });
-})();
+}
 
 // ---- Keyboard navigation ----
 document.addEventListener('keydown', function (e) {
