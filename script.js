@@ -183,16 +183,15 @@ function toggleTheme(cb) {
   }
 })();
 
-// ---- Flashlight: canvas (desktop) or slow animated searchlight (mobile) ----
+// ---- Flashlight: lazy-initialized on first mousemove (works for touchscreen laptops too) ----
 document.documentElement.classList.add('on-homepage');
-if (window.matchMedia('(hover: hover)').matches) {
-  // Desktop: draw flashlight on canvas — no CSS repaint, no lag
+(function () {
   var canvas = document.getElementById('flashlight-canvas');
   var ctx = canvas.getContext('2d');
   var canvasW = 0, canvasH = 0;
-  var fx = window.innerWidth * 0.5;
-  var fy = window.innerHeight * 0.44;
+  var fx = 0, fy = 0;
   var rafQueued = false;
+  var ready = false;
 
   // Allocate gradient once — centered at origin, repositioned via ctx.translate each frame
   var spotGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 210);
@@ -211,7 +210,6 @@ if (window.matchMedia('(hover: hover)').matches) {
     canvas.style.width = canvasW + 'px';
     canvas.style.height = canvasH + 'px';
     ctx.scale(dpr, dpr);
-    // Fill dark once — per-frame updates only touch the spotlight area
     ctx.fillStyle = 'rgb(5, 6, 12)';
     ctx.fillRect(0, 0, canvasW, canvasH);
     prevFx = undefined;
@@ -237,18 +235,20 @@ if (window.matchMedia('(hover: hover)').matches) {
     rafQueued = false;
   }
 
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-
   document.addEventListener('mousemove', function (e) {
     fx = e.clientX;
     fy = e.clientY;
+    if (!ready) {
+      ready = true;
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+    }
     if (!rafQueued) {
       rafQueued = true;
       requestAnimationFrame(renderFlashlight);
     }
   });
-}
+})();
 
 // ---- Keyboard navigation ----
 document.addEventListener('keydown', function (e) {
